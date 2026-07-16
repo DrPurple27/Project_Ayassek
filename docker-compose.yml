@@ -1,0 +1,14 @@
+services:
+  ayassek:
+    build: .
+    container_name: ayassek
+    ports:
+      - "2727:2727"
+    volumes:
+      - ./data:/app/data
+      - ./REPOSTOINSPIRE:/app/REPOSTOINSPIRE
+      - ./.env:/app/.env
+    environment:
+      - AYASSEK_HOST=0.0.0.0
+      - AYASSEK_PORT=2727
+    restart: unless-stopped

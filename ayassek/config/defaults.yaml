@@ -1,0 +1,167 @@
+server:
+  host: "0.0.0.0"
+  port: 2727
+  debug: false
+
+defaults:
+  provider: "ollama"
+  model: "qwen3-vl:8b"
+  fallback_model: "qwen2.5:1.5b"
+
+providers:
+  openai:
+    base_url: "https://api.openai.com/v1"
+    api_key: ""
+  nim:
+    base_url: "https://ai.api.nvidia.com/v1"
+    api_key: ""
+  ollama:
+    base_url: "http://localhost:11434"
+  vllm:
+    base_url: "http://localhost:8000/v1"
+    api_key: ""
+
+logging:
+  level: "INFO"
+  file: "data/logs/ayassek.log"
+  max_bytes: 10485760
+  backup_count: 3
+
+memory:
+  short_term:
+    max_messages: 50
+  rag:
+    chunk_size: 512
+    chunk_overlap: 64
+  second_brain:
+    path: "data/second_brain"
+  neural:
+    db_path: "data/neural_memory.db"
+    chroma_path: "data/chroma"
+    auto_connect_threshold: 0.75
+    default_node_x_range: [100, 600]
+    default_node_y_range: [100, 400]
+
+# New RAG configuration
+rag:
+  enabled: true
+  # Embedding model configuration
+  embedding:
+    provider: "local"  # local, openai
+    model: "Qwen/Qwen3-Embedding-0.6B"
+    dimension: 1024
+    instruction: "Given a web search query, retrieve relevant passages that answer the query"
+    batch_size: 32
+    device: "auto"  # auto, cuda, cpu, mps
+    use_flash_attention: false
+    instruction_aware: true
+    max_length: 8192
+  # Chunking configuration
+  chunking:
+    strategy: "semantic"  # semantic, fixed, recursive
+    chunk_size: 600
+    chunk_overlap: 80
+    min_chunk_size: 100
+    max_chunk_size: 1000
+    separators: ["\n\n", "\n", ". ", "! ", "? ", "; ", ", "]
+  # Vector database configuration
+  vector_db:
+    provider: "lancedb"  # lancedb, chromadb
+    path: "data/lancedb"
+    table_name: "ayassek_rag"
+    # HNSW index parameters
+    index:
+      metric: "cosine"
+      num_partitions: 256
+      num_sub_vectors: 96
+  # Retrieval configuration
+  retrieval:
+    top_k_initial: 50
+    top_k_final: 5
+    similarity_threshold: 0.3
+  # Re-ranker configuration
+  reranker:
+    enabled: true
+    provider: "local"  # local, openai
+    model: "Qwen/Qwen3-Reranker-0.6B"
+    batch_size: 16
+    max_length: 8192
+    use_sigmoid: true
+    instruction: "Given a web search query, retrieve relevant passages that answer the query"
+    # Fallback if reranker unavailable
+    fallback: "bge-reranker-v2-m3"
+    device: "auto"
+    low_latency_mode: false
+
+storage:
+  upload_dir: "data/uploads"
+  data_dir: "data"
+
+# Second Brain configuration
+second_brain:
+  enabled: true
+  # Categories for organizing notes
+  categories:
+    - "projects"
+    - "people"
+    - "concepts"
+    - "meetings"
+    - "references"
+    - "tasks"
+  # Auto-summarization
+  auto_summarize:
+    enabled: true
+    interval_messages: 20
+    model: "qwen2.5:1.5b"
+    temperature: 0.3
+  # Fact extraction
+  fact_extraction:
+    enabled: true
+    model: "qwen2.5:1.5b"
+    temperature: 0.3
+  # Link suggestions
+  link_suggestions:
+    enabled: true
+    similarity_threshold: 0.75
+    max_suggestions: 5
+
+# Voice configuration
+voice:
+  stt:
+    enabled: true
+    model: "base"  # tiny, base, small, medium
+    device: "auto"
+    compute_type: "int8"
+    language: "pt"
+  tts:
+    enabled: true
+    engine: "kokoro"  # kokoro, piper
+    lang_code: "a"  # a=EN, p=PT-BR
+    voice: "af_heart"
+    sample_rate: 24000
+
+# Sandbox configuration
+sandbox:
+  enabled: true
+  image: "ayassek/sandbox:latest"
+  timeout: 60
+  memory_limit: "512m"
+  cpu_limit: "1"
+  network: "none"
+
+# NRS Enhanced configuration
+nrs:
+  model: "qwen2.5:1.5b"
+  temperature: 0.3
+  # Critical thinking features
+  contradiction_detection:
+    enabled: true
+    threshold: 0.7
+  belief_tracking:
+    enabled: true
+    max_versions: 10
+  epistemic_reasoning:
+    enabled: true
+  auto_summarize:
+    enabled: true
+    interval_minutes: 30
